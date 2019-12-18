@@ -1,17 +1,13 @@
 from typing import NamedTuple, Tuple
 
 import requests
-
+import zarame
 
 QIITA_API_ENDPOINT = 'https://qiita.com/api/v2/items'
 
 
 class User(NamedTuple):
     id: str
-
-    @classmethod
-    def from_dict(cls, d: dict) -> 'User':
-        return cls(id=d['id'])
 
 
 class Item(NamedTuple):
@@ -20,21 +16,12 @@ class Item(NamedTuple):
     user: User
     created_at: str
 
-    @classmethod
-    def from_dict(cls, d: dict) -> 'Item':
-        return cls(
-            title=d['title'],
-            url=d['url'],
-            user=User.from_dict(d['user']),
-            created_at=d['created_at']
-        )
-
 
 def fetch_qiita_items(page: int = 1) -> Tuple[Item, ...]:
     res = requests.get(QIITA_API_ENDPOINT, {'page': page})
     res.raise_for_status()
     return tuple(
-        Item.from_dict(item) for item in res.json()
+        zarame.load(item, Item) for item in res.json()
     )
 
 
